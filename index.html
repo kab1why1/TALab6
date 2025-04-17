@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Менеджер студентів із закритим хешуванням</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="container">
+    <section>
+      <h2>Додати студента</h2>
+      <label>Ім'я: <input type="text" id="nameInput"></label>
+      <label>Дата народження: <input type="date" id="dobInput"></label>
+      <button id="addButton">Додати</button>
+    </section>
+    <section>
+      <h2>Пошук за ім'ям</h2>
+      <label>Ім'я: <input type="text" id="searchInput"></label>
+      <button id="searchButton">Знайти</button>
+      <ul id="searchResults"></ul>
+    </section>
+    <section>
+      <h2>Дні народження за місяцем</h2>
+      <label>Місяць: <select id="monthSelect">
+        <option value="0">Всі</option>
+        <option value="1">Січень</option><option value="2">Лютий</option>
+        <option value="3">Березень</option><option value="4">Квітень</option>
+        <option value="5">Травень</option><option value="6">Червень</option>
+        <option value="7">Липень</option><option value="8">Серпень</option>
+        <option value="9">Вересень</option><option value="10">Жовтень</option>
+        <option value="11">Листопад</option><option value="12">Грудень</option>
+      </select></label>
+      <button id="filterButton">Показати</button>
+      <ul id="monthResults"></ul>
+    </section>
+    <section>
+      <h2>Хеш‑таблиці (закрите хешування)</h2>
+      <div>
+        <h3>Лінійне зондування (метод ділення)</h3>
+        <table><thead>
+          <tr><th>Бакет</th><th>Студент</th><th>Хеш</th></tr>
+        </thead><tbody id="divisionBody"></tbody></table>
+      </div>
+      <div style="margin-top:20px;">
+        <h3>Подвійне хешування (метод множення)</h3>
+        <table><thead>
+          <tr><th>Бакет (Місяць)</th><th>Студент</th><th>Хеш1</th><th>Хеш2</th></tr>
+        </thead><tbody id="multiplicationBody"></tbody></table>
+      </div>
+    </section>
+  </div>
+<script src="./script.js"></script>
+</body>
+</html>
