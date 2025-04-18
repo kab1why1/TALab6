@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Менеджер студентів із закритим хешуванням</title>
+  <style>
+    :root {
+    --bg-color: #121212;
+    --container-bg: #1e1e1e;
+    --text-color: #e0e0e0;
+    --accent-color: #bb86fc;
+    --button-bg: #3a3a3a;
+    --button-hover: #505050;
+    --border-color: #333;
+    --input-bg: #2a2a2a;
+  }
+
+body 
+{ 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; 
+    padding: 20px; 
+    background-color: var(--bg-color); 
+    color: var(--text-color); 
+}
+
+.container 
+{ 
+    max-width: 900px; 
+    margin: 0 auto; 
+    background: var(--container-bg); 
+    padding: 20px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
+}
+
+h1, h2, h3 
+{ 
+    color: var(--accent-color); 
+    margin-top: 0; 
+}
+
+section 
+{ 
+    margin-bottom: 30px; 
+}
+
+label 
+{ 
+    margin-right: 10px; 
+}
+
+input, select, button 
+{ 
+    padding: 8px 10px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 6px; 
+    font-size: 14px; 
+    background-color: var(--input-bg); 
+    color: var(--text-color); 
+}
+
+button 
+{ 
+    background-color: var(--button-bg); 
+    cursor: pointer; 
+    transition: background-color 0.3s ease;
+}
+
+button:hover 
+{ 
+    background-color: var(--button-hover); 
+}
+
+table 
+{ 
+    border-collapse: collapse; 
+    width: 100%; 
+    margin-top: 10px; 
+    font-size: 14px; 
+}
+
+th, td 
+{ 
+    border: 1px solid var(--border-color); 
+    padding: 8px; 
+    vertical-align: top; 
+}
+
+th 
+{ 
+    background: var(--input-bg);
+}
+
+ul
+{ 
+    list-style-type: none; 
+    padding-left: 0; 
+}
+
+li
+{ 
+    padding: 4px 0; 
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section>
+      <h2>Додати студента</h2>
+      <label>Ім'я: <input type="text" id="nameInput"></label>
+      <label>Дата народження: <input type="date" id="dobInput"></label>
+      <button id="addButton">Додати</button>
+    </section>
+    <section>
+      <h2>Пошук за ім'ям</h2>
+      <label>Ім'я: <input type="text" id="searchInput"></label>
+      <button id="searchButton">Знайти</button>
+      <ul id="searchResults"></ul>
+    </section>
+    <section>
+      <h2>Дні народження за місяцем</h2>
+      <label>Місяць: <select id="monthSelect">
+        <option value="0">Всі</option>
+        <option value="1">Січень</option><option value="2">Лютий</option>
+        <option value="3">Березень</option><option value="4">Квітень</option>
+        <option value="5">Травень</option><option value="6">Червень</option>
+        <option value="7">Липень</option><option value="8">Серпень</option>
+        <option value="9">Вересень</option><option value="10">Жовтень</option>
+        <option value="11">Листопад</option><option value="12">Грудень</option>
+      </select></label>
+      <button id="filterButton">Показати</button>
+      <ul id="monthResults"></ul>
+    </section>
+    <section>
+      <h2>Хеш‑таблиці (закрите хешування)</h2>
+      <div>
+        <h3>Лінійне зондування (метод ділення)</h3>
+        <table><thead>
+          <tr><th>Бакет</th><th>Студент</th><th>Хеш</th></tr>
+        </thead><tbody id="divisionBody"></tbody></table>
+      </div>
+      <div style="margin-top:20px;">
+        <h3>Подвійне хешування (метод множення)</h3>
+        <table><thead>
+          <tr><th>Бакет (Місяць)</th><th>Студент</th><th>Хеш1</th><th>Хеш2</th></tr>
+        </thead><tbody id="multiplicationBody"></tbody></table>
+      </div>
+    </section>
+  </div>
+<script>
+    const m = 12;
+const A = (Math.sqrt(5)-1)/2;
+const R = 7;
+
+let students = [];
+let divisionTable = Array(m).fill(null);
+let multiplicationTable = Array(m).fill(null);
+
+function getKey(dob)
+{ 
+    const [y,mo,da]=dob.split('-').map(Number); 
+    return y*10000+mo*100+da; 
+}
+
+function h1(key)
+{ 
+    const mo=Math.floor((key%10000)/100); 
+    return mo % m; 
+}
+
+function h2(key)
+{ 
+    return R - (key % R); 
+}
+
+function insertLinear(student)
+{ 
+    const key=student.key; 
+    let idx = h1(key);
+    for(let i=0; i < m; i++ )
+    { 
+        const pos=(idx+i) % m;
+        if(!divisionTable[pos])
+        { 
+            divisionTable[pos]=student; 
+            return; 
+        } 
+    }
+  }
+
+function insertDouble(student)
+{ 
+    const key=student.key;
+    const start=h1(key); 
+    const step=h2(key);
+    for(let i = 0; i < m; i++)
+    { 
+        const pos=(start + i * step) % m; 
+        if(!multiplicationTable[pos])
+        { 
+            multiplicationTable[pos]=student; 
+            return; 
+        } 
+    }
+  }
+
+function buildTables()
+{ 
+    divisionTable.fill(null); 
+    multiplicationTable.fill(null);
+    students.forEach(s=>{ insertLinear(s); insertDouble(s); }); 
+}
+
+function renderTable(tbl,id)
+{ 
+    const body=document.getElementById(id); body.innerHTML='';
+    tbl.forEach((student, i) => 
+    {
+      const tr=document.createElement('tr');
+      const tdBucket=document.createElement('td'); tdBucket.textContent = i+1;
+      const tdStudent=document.createElement('td');
+      const tdHash1=document.createElement('td');
+      const tdHash2 = document.createElement('td');
+      if(student)
+        {
+            tdStudent.textContent = `${student.name} (${student.dob})`;
+            tdHash1.textContent = h1(student.key);
+            if(id === 'multiplicationBody') tdHash2.textContent = h2(student.key);
+        } else 
+        {
+            tdStudent.textContent = '-'; tdHash1.textContent = '-'; tdHash2.textContent = '-';
+        }
+        tr.append(tdBucket, tdStudent, tdHash1);
+        if(id==='multiplicationBody') tr.appendChild(tdHash2);
+        body.append(tr);
+    });
+  }
+
+  function updateUI(){ buildTables();
+    renderTable(divisionTable,'divisionBody'); renderTable(multiplicationTable,'multiplicationBody'); }
+
+  function searchByName(){ const q=document.getElementById('searchInput').value.trim().toLowerCase();
+    const ul=document.getElementById('searchResults'); ul.innerHTML=''; if(!q) return;
+    const res=students.filter(s=>s.name.toLowerCase().includes(q));
+    if(!res.length) ul.innerHTML='<li>Нічого не знайдено</li>';
+    else res.forEach(s=>{ const li=document.createElement('li'); li.textContent=`${s.name} — ${s.dob}`; ul.append(li); }); }
+
+  function filterByMonth(){ const mo=Number(document.getElementById('monthSelect').value);
+    const ul=document.getElementById('monthResults'); ul.innerHTML=''; if(!mo) return;
+    const res=students.filter(s=> (new Date(s.dob).getMonth()+1)===mo);
+    if(!res.length) ul.innerHTML='<li>Немає студентів</li>';
+    else res.forEach(s=>{ const li=document.createElement('li'); li.textContent=`${s.name} — ${s.dob}`; ul.append(li); }); }
+
+  document.getElementById('addButton').addEventListener('click',()=>{
+    const name=document.getElementById('nameInput').value.trim(); const dob=document.getElementById('dobInput').value;
+    if(!name||!dob){ alert('Заповніть усі поля'); return; }
+    students.push({name,dob,key:getKey(dob)});
+    updateUI();
+    document.getElementById('nameInput').value=''; document.getElementById('dobInput').value='';
+  });
+  document.getElementById('searchButton').addEventListener('click',searchByName);
+  document.getElementById('filterButton').addEventListener('click',filterByMonth);
+
+  updateUI();
+</script>
+</body>
+</html>
